@@ -7,7 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect('mongodb://db:27017/threetier', { useNewUrlParser: true, useUnifiedTopology: true })
+const mongoUri = process.env.MONGODB_URI || 'mongodb://db:27017/threetier';
+
+mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(error => console.error('MongoDB connection error:', error));
 
