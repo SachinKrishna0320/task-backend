@@ -15,9 +15,10 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
 
 mongoose.connection.on('error', error => console.error('MongoDB connection error event:', error));
 
-const ItemSchema = new mongoose.Schema({
-  name: String
-});
+const ItemSchema = new mongoose.Schema(
+  { name: String },
+  { timestamps: true }
+);
 
 const Item = mongoose.model('Item', ItemSchema);
 
@@ -30,6 +31,19 @@ app.post('/api/data', async (req, res) => {
   const item = new Item(req.body);
   await item.save();
   res.json(item);
+});
+
+app.post('/api/data/delete', async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  }
+  const valid = ids.filter((id) => mongoose.Types.ObjectId.isValid(String(id)));
+  if (valid.length === 0) {
+    return res.status(400).json({ error: 'no valid ids' });
+  }
+  const result = await Item.deleteMany({ _id: { $in: valid } });
+  res.json({ deletedCount: result.deletedCount });
 });
 
 app.post('/api/seed', async (req, res) => {
